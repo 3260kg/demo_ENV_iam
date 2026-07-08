@@ -310,9 +310,7 @@
   </main>
 
   <script>
-    (function() {
-      const params = new URLSearchParams(window.location.search);
-      const encodedLink = params.get('cl');
+    (function () {
       const continueBtn = document.getElementById('continueBtn');
       const copyBtn = document.getElementById('copyBtn');
       const status = document.getElementById('status');
@@ -322,29 +320,46 @@
         status.classList.toggle('error', !!isError);
       }
 
-      if (!encodedLink) {
+      function getRawCl() {
+        const search = window.location.search.startsWith('?')
+          ? window.location.search.slice(1)
+          : window.location.search;
+
+        const prefix = 'cl=';
+        const idx = search.indexOf(prefix);
+        if (idx === -1) return null;
+
+        return search.slice(idx + prefix.length);
+      }
+
+      const rawCl = getRawCl();
+
+      if (!rawCl) {
         setStatus('This verification link is missing or invalid.', true);
         continueBtn.disabled = true;
         return;
+      }
+
+      let destination = rawCl;
+      try {
+        const decoded = decodeURIComponent(rawCl);
+        if (decoded && decoded.startsWith('http')) {
+          destination = decoded;
+        }
+      } catch (e) {
       }
 
       continueBtn.disabled = false;
       copyBtn.classList.remove('hidden');
       setStatus('Ready. Tap Continue to securely resume verification.');
 
-      continueBtn.addEventListener('click', function() {
-        try {
-          const destination = decodeURIComponent(encodedLink);
-          setStatus('Redirecting…');
-          window.location.assign(destination);
-        } catch (err) {
-          setStatus('The verification link could not be decoded.', true);
-        }
+      continueBtn.addEventListener('click', function () {
+        setStatus('Redirecting…');
+        window.location.assign(destination);
       });
 
-      copyBtn.addEventListener('click', async function() {
+      copyBtn.addEventListener('click', async function () {
         try {
-          const destination = decodeURIComponent(encodedLink);
           await navigator.clipboard.writeText(destination);
           setStatus('Verification link copied.');
         } catch (err) {
