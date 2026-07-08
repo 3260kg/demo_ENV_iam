@@ -6,14 +6,16 @@
   <title>Bankwell Verification</title>
   <style>
     :root {
-      --artifact-background: #eef1ec;
-      --artifact-background-light: #f7f5ee;
-      --artifact-border-light: #d5ddd4;
-      --artifact-border-dark: #c5cfc4;
-      --artifact-text-primary: #123c37;
-      --artifact-text-secondary: #49625d;
-      --artifact-primary-highlight: #123c37;
-      --artifact-primary-hover: #254c47;
+      --artifact-background: var(--theme-background, #eef1ec);
+      --artifact-background-light: var(--theme-background-light, #f7f5ee);
+      --artifact-background-mid: var(--theme-background-mid, #e4e9e2);
+      --artifact-border-light: var(--theme-border-light, #d5ddd4);
+      --artifact-border-dark: var(--theme-border-dark, #c5cfc4);
+      --artifact-text-primary: var(--theme-text-primary, #123c37);
+      --artifact-text-secondary: var(--theme-text-secondary, #49625d);
+      --artifact-selected: var(--theme-selected, #e1e9e2);
+      --artifact-primary-highlight: var(--theme-primary-highlight, #123c37);
+      --artifact-primary-hover: var(--theme-primary-hover, #254c47);
       --artifact-button-text: #f8f4ec;
       --artifact-sage: #9bb8a8;
       --artifact-cream: #f8f4ec;
@@ -22,8 +24,33 @@
       --artifact-line: rgba(18, 60, 55, 0.16);
       --artifact-soft-text: rgba(18, 60, 55, 0.72);
       --artifact-faint: rgba(18, 60, 55, 0.08);
+      --artifact-faint-strong: rgba(18, 60, 55, 0.12);
       --artifact-button-shadow: rgba(18, 60, 55, 0.18);
       --artifact-focus: rgba(155, 184, 168, 0.42);
+    }
+
+    html[data-theme='dark'] {
+      --artifact-background: #112622;
+      --artifact-background-light: #19322d;
+      --artifact-background-mid: #24413b;
+      --artifact-border-light: #35534d;
+      --artifact-border-dark: #47645f;
+      --artifact-text-primary: #eef4f0;
+      --artifact-text-secondary: #c2d1ca;
+      --artifact-selected: #23403b;
+      --artifact-primary-highlight: #eaf2ee;
+      --artifact-primary-hover: #f4f8f5;
+      --artifact-button-text: #123c37;
+      --artifact-sage: #a9c0b3;
+      --artifact-cream: #19322d;
+      --artifact-shadow: rgba(0, 0, 0, 0.32);
+      --artifact-overlay: rgba(17, 38, 34, 0.68);
+      --artifact-line: rgba(238, 244, 240, 0.12);
+      --artifact-soft-text: rgba(238, 244, 240, 0.74);
+      --artifact-faint: rgba(238, 244, 240, 0.06);
+      --artifact-faint-strong: rgba(238, 244, 240, 0.1);
+      --artifact-button-shadow: rgba(0, 0, 0, 0.24);
+      --artifact-focus: rgba(169, 192, 179, 0.35);
     }
 
     * { box-sizing: border-box; }
@@ -45,17 +72,21 @@
     .shell {
       width: 100%;
       max-width: 540px;
+      animation: fade-up 380ms ease-out;
     }
 
     .card {
+      position: relative;
       overflow: hidden;
       background: var(--artifact-cream);
+      color: var(--artifact-text-primary);
       border: 1px solid var(--artifact-border-light);
       box-shadow: 0 18px 42px var(--artifact-shadow);
     }
 
     .top-bar {
       height: 18px;
+      width: 100%;
       background: var(--artifact-sage);
     }
 
@@ -78,17 +109,19 @@
     .eyebrow {
       display: inline-flex;
       align-items: center;
+      gap: 8px;
       padding: 8px 12px;
       border: 1px solid var(--artifact-line);
       background: var(--artifact-faint);
       color: var(--artifact-text-secondary);
       font-size: 13px;
+      letter-spacing: 0.02em;
       margin-bottom: 18px;
     }
 
     h1 {
       margin: 0 0 12px;
-      font-size: 2rem;
+      font-size: clamp(1.8rem, 2.5vw, 2.3rem);
       line-height: 1.12;
       color: var(--artifact-text-primary);
       font-weight: 600;
@@ -108,10 +141,21 @@
     }
 
     .callout {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      gap: 12px;
+      align-items: start;
       padding: 14px 16px;
       margin: 22px 0;
       background: var(--artifact-faint);
       border: 1px solid var(--artifact-line);
+    }
+
+    .callout svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--artifact-sage);
+      margin-top: 2px;
     }
 
     .status {
@@ -140,6 +184,7 @@
       font: inherit;
       font-weight: 600;
       cursor: pointer;
+      transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
     }
 
     .primary-btn {
@@ -148,15 +193,30 @@
       box-shadow: 0 10px 24px var(--artifact-button-shadow);
     }
 
+    .primary-btn:hover { background: var(--artifact-primary-hover); }
+    .primary-btn:active { transform: translateY(1px); }
+
     .secondary-btn {
       background: transparent;
       color: var(--artifact-text-primary);
       border-color: var(--artifact-border-light);
     }
 
+    .secondary-btn:hover {
+      background: var(--artifact-faint);
+      border-color: var(--artifact-border-dark);
+    }
+
+    .primary-btn:focus-visible,
+    .secondary-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 4px var(--artifact-focus);
+    }
+
     .primary-btn[disabled] {
       cursor: not-allowed;
       opacity: 0.65;
+      transform: none;
     }
 
     .tiny {
@@ -166,6 +226,52 @@
     }
 
     .hidden { display: none; }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 16px; }
+      .card-inner { padding: 22px; }
+      h1 { font-size: 1.7rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    @media print {
+      body {
+        margin: 0;
+        padding: 0.4in 0.6in;
+        background: #fff;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+      .shell {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+      .card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid rgba(0,0,0,0.08);
+      }
+      .button-row,
+      .tiny {
+        display: none !important;
+      }
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -185,8 +291,11 @@
           <p>You will only be redirected after you tap the button below.</p>
         </div>
 
-        <div class="callout">
-          If this page opened from a message preview, nothing happens until you press Continue.
+        <div class="callout" role="note" aria-label="Verification note">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 5.2a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4zm1.6 10h-3.2v-1.6h.8v-3.2h-.8v-1.6h2.4v4.8h.8v1.6z"/>
+          </svg>
+          <p>If the page opened from a text-message preview, no action is taken until you press Continue.</p>
         </div>
 
         <div class="button-row">
@@ -195,7 +304,7 @@
         </div>
 
         <div id="status" class="status" aria-live="polite">Preparing secure link…</div>
-        <div class="tiny">If the button stays disabled, reopen the link from your SMS and try again.</div>
+        <div class="tiny">If the button stays disabled, reopen the link from your SMS message and try again.</div>
       </div>
     </section>
   </main>
@@ -211,33 +320,31 @@
         status.classList.toggle('error', !!isError);
       }
 
-      function getDestination() {
-        const hash = window.location.hash ? window.location.hash.slice(1) : '';
-        if (hash && hash.startsWith('http')) return hash;
-
-        const search = window.location.search.startsWith('?')
-          ? window.location.search.slice(1)
-          : window.location.search;
-
-        const prefix = 'cl=';
-        const idx = search.indexOf(prefix);
+      function getRawCl() {
+        const href = window.location.href;
+        const marker = '?cl=';
+        const idx = href.indexOf(marker);
         if (idx === -1) return null;
-
-        const rawCl = search.slice(idx + prefix.length);
-        try {
-          const decoded = decodeURIComponent(rawCl);
-          return decoded || rawCl;
-        } catch (e) {
-          return rawCl;
-        }
+        return href.slice(idx + marker.length);
       }
 
-      const destination = getDestination();
+      const rawCl = getRawCl();
 
-      if (!destination) {
+      if (!rawCl) {
         setStatus('This verification link is missing or invalid.', true);
         continueBtn.disabled = true;
         return;
+      }
+
+      let destination = rawCl;
+
+      try {
+        const decoded = decodeURIComponent(rawCl);
+        if (decoded && decoded.startsWith('http')) {
+          destination = decoded;
+        }
+      } catch (e) {
+        destination = rawCl;
       }
 
       continueBtn.disabled = false;
@@ -258,6 +365,15 @@
         }
       });
     })();
+
+    window.GleanBridge?.postMessage?.({
+      actionId: 'export-pdf',
+      type: 'glean-add-menu',
+      metadata: { label: 'Export as PDF', icon: 'export' }
+    });
+    window.GleanBridge?.onMessage?.('action', function(data) {
+      if (data.actionId === 'export-pdf') window.print();
+    });
   </script>
 </body>
 </html>
